@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Nutrition ML Dashboard</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+    body { min-height:100vh; display:flex; align-items:center; justify-content:center;
+        background: linear-gradient(135deg,#f0f4f8,#dbe9f7); margin:0; padding:24px;}
+    .card { width:100%; max-width:1100px; border-radius:14px; box-shadow:0 10px 30px rgba(15,23,42,0.08); }
+    .form-inline input { max-width:160px; }
+    .metrics { background:#fff; padding:14px; border-radius:10px; }
+    .data-table table { width:100%; border-collapse:collapse; }
+    .data-table th { background:#0d6efd; color:#fff; padding:8px; }
+    .data-table td { padding:8px; border:1px solid #eee; text-align:center; }
+    .dark body, .dark { background:#0f1724; color:#e6eef8; }
+    .theme-toggle { position:absolute; top:18px; right:20px; }
+</style>
+</head>
+<body>
+<div class="card p-4 position-relative">
+    <div class="theme-toggle">
+    <button id="themeBtn" class="btn btn-sm btn-outline-secondary">🌙 Dark</button>
+    </div>
+
+    <div class="row gx-4">
+    <div class="col-12 d-flex justify-content-between align-items-center mb-3">
+    <h3>🥗 Nutrition ML Dashboard</h3>
+    <div>
+    </div>
+    </div>
+
+    {% if message %}
+    <div class="alert alert-warning">{{ message }}</div>
+    {% endif %}
+
+    <div class="col-lg-6">
+    <div class="card p-3 mb-3">
+        <h5>Predict calories</h5>
+        <form method="post" class="form-inline">
+        <input type="hidden" name="dataset" value="{{ selected }}">
+        <input type="hidden" name="action" value="predict">
+        <div class="d-flex gap-2 flex-wrap">
+            <input name="protein" type="number" step="0.1" class="form-control" placeholder="Protein (g)" required>
+            <input name="fat" type="number" step="0.1" class="form-control" placeholder="Fat (g)" required>
+            <input name="carbs" type="number" step="0.1" class="form-control" placeholder="Carbs (g)" required>
+            <input name="weight" type="number" step="0.1" class="form-control" placeholder="Weight (g)">
+            <button class="btn btn-primary">Predict</button>
+        </div>
+        </form>
+
+        {% if predicted %}
+        <div class="mt-3">
+            <h4>Predicted Calories: <span class="text-primary">{{ predicted }} kcal</span></h4>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="card p-3">
+        <h5>Dataset preview (first 10 rows)</h5>
+        <div class="data-table">
+        {% if preview_html %}
+            {{ preview_html | safe }}
+        {% else %}
+            <p class="text-muted">No preview available.</p>
+        {% endif %}
+        </div>
+    </div>
+    </div>
+
+    <div class="col-lg-6">
+    <div class="card p-3 mb-3">
+        <h5>Model & Metrics</h5>
+        {% if train_info %}
+        <p><b>Best model:</b> {{ train_info.best_model }}</p>
+        <p><b>Rows:</b> {{ train_info.rows }}</p>
+        <p><b>Used features:</b> {{ train_info.used_features }}</p>
+        {% if train_info.const_removed %}
+        <p class="text-danger">Removed const features: {{ train_info.const_removed }}</p>
+        {% endif %}
+        <div class="metrics">
+            <p>R²: <b>{{ train_info.metrics.r2 }}</b></p>
+            <p>MAE: <b>{{ train_info.metrics.mae }}</b></p>
+            <p>MSE: <b>{{ train_info.metrics.mse }}</b></p>
+        </div>
+        {% else %}
+        <p class="text-muted">No training info yet.</p>
+        {% endif %}
+    </div>
+
+    <div class="card p-3">
+        <h5>Actual vs Predicted</h5>
+        {% if plot_url %}
+        <img src="data:image/png;base64,{{ plot_url }}" class="img-fluid rounded" alt="plot">
+        {% else %}
+        <p class="text-muted">Plot not available.</p>
+        {% endif %}
+    </div>
+    </div>
+</div>
+</div>
+
+<script>
+  // Dark mode toggle (simple)
+const btn = document.getElementById('themeBtn');
+btn.onclick = () => {
+    document.body.classList.toggle('dark');
+    if (btn.textContent.trim() === '🌙 Dark') btn.textContent = '☀️ Light'; else btn.textContent = '🌙 Dark';
+};
+</script>
+</body>
+</html>
